@@ -172,7 +172,10 @@ function makeNumberTexture(n) {
    Face extraction: group a geometry's triangles into logical faces,
    returning each face's centre, outward normal and a hull point list.
 ---------------------------------------------------------------------------- */
-function extractFaces(geo) {
+function extractFaces(geoIn) {
+  // Work on a non-indexed copy so we iterate real triangles (BoxGeometry etc.
+  // are indexed; the polyhedral dice are already non-indexed).
+  const geo = geoIn.index ? geoIn.toNonIndexed() : geoIn;
   const pos = geo.getAttribute('position');
   const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
   const ab = new THREE.Vector3(), ac = new THREE.Vector3(), n = new THREE.Vector3();
@@ -203,6 +206,7 @@ function extractFaces(geo) {
       if (!seen.has(k)) { seen.add(k); hull.push(v.x, v.y, v.z); }
     }
   }
+  if (geo !== geoIn) geo.dispose();
   return { faces, hull: new Float32Array(hull) };
 }
 
@@ -227,10 +231,18 @@ function buildD10() {
     const center = new THREE.Vector3().add(apex).add(a).add(b).add(cc).multiplyScalar(0.25);
     const n1 = new THREE.Vector3().subVectors(a, apex).cross(new THREE.Vector3().subVectors(b, apex));
     const n2 = new THREE.Vector3().subVectors(b, apex).cross(new THREE.Vector3().subVectors(cc, apex));
-    const normal = n1.add(n2).normalize();
+    const normal = n1.clone().add(n2).normalize();
     if (normal.dot(center) < 0) normal.negate();
     const size = Math.min(center.distanceTo(a), center.distanceTo(b), center.distanceTo(cc));
-    faces.push({ center, normal, size });
+    // The kite is folded along its ridge, so its centroid lies *inside* the hull.
+    // Project the centroid outward along the face normal onto a triangle's plane
+    // so the painted number sits on the real surface (not buried inside).
+    const tn = n1.clone().normalize();
+    if (tn.dot(normal) < 0) tn.negate();
+    const inside = tn.dot(apex) - tn.dot(center);          // >0 when centroid is below the plane
+    const t = Math.max(0, inside / Math.max(tn.dot(normal), 1e-3));
+    const labelPos = center.clone().addScaledVector(normal, t + 0.02);
+    faces.push({ center, normal, size, labelPos });
   }
   for (const v of [N, S, ...E]) hull.push(v.x, v.y, v.z);
   const geo = new THREE.BufferGeometry();
@@ -284,7 +296,8 @@ function buildDie(type) {
       new THREE.PlaneGeometry(f.size * 1.05, f.size * 1.05),
       new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false })
     );
-    plane.position.copy(f.center).addScaledVector(f.normal, 0.012);
+    if (f.labelPos) plane.position.copy(f.labelPos);
+    else plane.position.copy(f.center).addScaledVector(f.normal, 0.014);
     plane.quaternion.setFromUnitVectors(up, f.normal.clone().normalize());
     plane.renderOrder = 2;
     plane.userData.face = f;
