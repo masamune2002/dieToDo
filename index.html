@@ -73,7 +73,7 @@
     border-top: 1px solid rgba(255,255,255,0.08);
   }
   #diceCanvas { position: absolute; inset: 0; }
-  #diceCanvas canvas { display: block; cursor: grab; }
+  #diceCanvas canvas { display: block; width: 100%; height: 100%; cursor: grab; }
   #diceCanvas canvas.grabbing { cursor: grabbing; }
   .dice-ui {
     position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
@@ -507,7 +507,7 @@ const Dice = (() => {
 
   function resize() {
     const w = mount.clientWidth || 1, h = mount.clientHeight || 1;
-    renderer.setSize(w, h, false);
+    renderer.setSize(w, h);          // updateStyle=true: canvas CSS size = pane size (fixes HiDPI overflow)
     const aspect = w / h;
     camera.top = FRAME_DEPTH; camera.bottom = -FRAME_DEPTH;
     camera.left = -FRAME_DEPTH * aspect; camera.right = FRAME_DEPTH * aspect;
