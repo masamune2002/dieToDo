@@ -12,7 +12,7 @@ page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
 page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
 
 // start clean (no persisted state)
-await page.goto('http://localhost:8099/index.html', { waitUntil: 'domcontentloaded' });
+await page.goto('http://localhost:3000/index.html', { waitUntil: 'domcontentloaded' });
 await page.evaluate(() => localStorage.removeItem('diceTodo'));
 await page.reload({ waitUntil: 'networkidle0', timeout: 60000 });
 await page.waitForFunction(() => !document.getElementById('loading'), { timeout: 60000 });

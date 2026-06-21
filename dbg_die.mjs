@@ -10,7 +10,7 @@ const logs = [];
 page.on('console', m => logs.push(`[${m.type()}] ${m.text()}`));
 page.on('pageerror', e => logs.push('PAGEERROR ' + e.message));
 
-await page.goto('http://localhost:8099/index.html', { waitUntil: 'domcontentloaded' });
+await page.goto('http://localhost:3000/index.html', { waitUntil: 'domcontentloaded' });
 await page.evaluate(() => localStorage.removeItem('diceTodo'));
 await page.reload({ waitUntil: 'networkidle0', timeout: 60000 });
 await page.waitForFunction(() => !document.getElementById('loading') && !!window.__dice, { timeout: 60000 });

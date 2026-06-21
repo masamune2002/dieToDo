@@ -15,7 +15,7 @@ for (const sz of sizes) {
   page.on('pageerror', e => errs.push(`${sz.w}x${sz.h}: ` + e.message));
   try {
     await page.setViewport({ width: sz.w, height: sz.h });
-    await page.goto('http://localhost:8099/index.html', { waitUntil: 'domcontentloaded' });
+    await page.goto('http://localhost:3000/index.html', { waitUntil: 'domcontentloaded' });
     await page.evaluate(() => localStorage.removeItem('diceTodo'));
     await page.reload({ waitUntil: 'networkidle0', timeout: 60000 });
     await page.waitForFunction(() => !document.getElementById('loading') && !!window.__dice, { timeout: 60000 });

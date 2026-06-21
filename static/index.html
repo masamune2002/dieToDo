@@ -565,14 +565,39 @@ document.getElementById('loading').remove();
 const MAX_DAILY = 20;
 let uid = 0;
 function mk(text) { return { id: 'i' + Date.now().toString(36) + (uid++), text }; }
-function save() { localStorage.setItem('diceTodo', JSON.stringify(state)); }
-function load() { try { return JSON.parse(localStorage.getItem('diceTodo')); } catch (_) { return null; } }
 
-let state = load() || {
-  master: ['Email Bob about the proposal', 'Write the spec doc', 'Fix the login bug',
-           'Review PR #214', 'Water the plants', 'Plan sprint demo'].map(mk),
-  daily: [],
-};
+const API = '/api/state';
+const SEED = ['Email Bob about the proposal', 'Write the spec doc', 'Fix the login bug',
+              'Review PR #214', 'Water the plants', 'Plan sprint demo'];
+
+// Persistence: write-through to the Axum/SQLite backend on every change.
+// Saves are chained so a slow request can't clobber newer state, and fall back
+// to localStorage if the server is unreachable (e.g. opened as a static file).
+let saveChain = Promise.resolve();
+function save() {
+  saveChain = saveChain.then(() =>
+    fetch(API, { method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ master: state.master, daily: state.daily }) })
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); })
+      .catch(err => { console.warn('save failed, caching locally', err);
+                      localStorage.setItem('diceTodo', JSON.stringify(state)); })
+  );
+}
+async function loadState() {
+  try {
+    const r = await fetch(API);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    if (!data.seeded) return null;            // brand-new server → caller seeds below
+    return { master: data.master, daily: data.daily };
+  } catch (err) {
+    console.warn('load failed, trying localStorage', err);
+    try { return JSON.parse(localStorage.getItem('diceTodo')); } catch (_) { return null; }
+  }
+}
+
+let state = await loadState();
+if (!state) { state = { master: SEED.map(mk), daily: [] }; save(); }   // first run: seed + persist
 
 function dieForCount(n) {
   if (n <= 4) return 'd4';

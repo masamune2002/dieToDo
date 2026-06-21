@@ -6,7 +6,7 @@ const browser = await puppeteer.launch({
 });
 const page = await browser.newPage();
 await page.setViewport({ width: 1200, height: 820 });
-await page.goto('http://localhost:8099/index.html', { waitUntil: 'domcontentloaded' });
+await page.goto('http://localhost:3000/index.html', { waitUntil: 'domcontentloaded' });
 await page.evaluate(() => localStorage.removeItem('diceTodo'));
 await page.reload({ waitUntil: 'networkidle0', timeout: 60000 });
 await page.waitForFunction(() => !document.getElementById('loading') && !!window.__app, { timeout: 60000 });
