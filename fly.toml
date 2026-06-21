@@ -1,37 +1,29 @@
-# fly.toml — Fly.io deployment for the Dice To-Do app
+# fly.toml app configuration file generated for die-todo on 2026-06-21T22:44:59Z
 #
-# First-time deploy:
-#   fly launch --no-deploy            # or just edit `app` below to a unique name
-#   fly volumes create todo_data --size 1 --region <your-region>
-#   fly secrets set ADMIN_PASSWORD=choose-a-strong-one   # optional: else it's generated + printed in `fly logs`
-#   fly deploy
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
-# NOTE: this app uses SQLite on a single mounted volume, so keep it to ONE
-# machine (`fly scale count 1`). SQLite can't be shared across machines.
 
-app = "dice-todo"            # must be globally unique — change me
-primary_region = "iad"       # pick a region near you: `fly platform regions`
+app = 'die-todo'
+primary_region = 'dfw'
 
 [build]
-  dockerfile = "Dockerfile"
+  dockerfile = 'Dockerfile'
 
 [env]
-  PORT = "3000"
-  # SQLite lives on the mounted volume (/data) so data persists across deploys.
-  DATABASE_URL = "sqlite:///data/todo.db?mode=rwc"
+  DATABASE_URL = 'sqlite:///data/todo.db?mode=rwc'
+  PORT = '3000'
+
+[[mounts]]
+  source = 'todo_data'
+  destination = '/data'
 
 [http_service]
-  internal_port = 3000
+  internal_port = 8080
   force_https = true
-  auto_stop_machines = true
+  auto_stop_machines = 'stop'
   auto_start_machines = true
-  min_machines_running = 0   # set to 1 to avoid cold starts
-
-# Persistent disk for the SQLite database.
-[mounts]
-  source = "todo_data"
-  destination = "/data"
+  min_machines_running = 0
 
 [[vm]]
-  size = "shared-cpu-1x"
-  memory = "512mb"
+  size = 'shared-cpu-1x'
+  memory = '512mb'
