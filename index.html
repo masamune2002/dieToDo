@@ -488,8 +488,8 @@ const Dice = (() => {
     requestAnimationFrame(animate);
     if (state === 'held' && body) {
       body.setNextKinematicTranslation(holdTarget);
-      heldEuler += 0.04;
-      tmpQ.setFromEuler(new THREE.Euler(heldEuler * 0.7, heldEuler, heldEuler * 0.4));
+      heldEuler += 0.42;        // fast tumble while held, so the landing orientation is well randomized
+      tmpQ.setFromEuler(new THREE.Euler(heldEuler * 0.73, heldEuler, heldEuler * 0.41));
       body.setNextKinematicRotation({ x: tmpQ.x, y: tmpQ.y, z: tmpQ.z, w: tmpQ.w });
     }
     world.step();
