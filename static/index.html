@@ -26,8 +26,15 @@
   }
   .col-head h2 { margin: 0; font-size: 15px; letter-spacing: .4px; }
   .col-head .count { font-size: 12px; opacity: .55; }
+  .col-head .reset-btn {
+    margin-left: auto; appearance: none; border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.05); color: #dfe4f2; font-size: 12px; font-weight: 600;
+    padding: 5px 10px; border-radius: 8px; cursor: pointer;
+  }
+  .col-head .reset-btn:hover { background: rgba(255,255,255,0.12); }
+  .col-head .reset-btn:disabled { opacity: .4; cursor: default; }
   .col-head .die-badge {
-    margin-left: auto; font-size: 12px; font-weight: 700; padding: 4px 9px;
+    font-size: 12px; font-weight: 700; padding: 4px 9px;
     border-radius: 8px; background: rgba(255,255,255,0.08); letter-spacing: .5px;
   }
   .add-row { display: flex; gap: 8px; padding: 10px 12px; }
@@ -212,6 +219,7 @@
       <div class="col">
         <div class="col-head">
           <h2>Today</h2><span class="count" id="dailyCount"></span>
+          <button class="reset-btn" id="resetBtn" title="Send all of Today's tasks back to the master list">Reset</button>
           <span class="die-badge" id="dieBadge">d4</span>
         </div>
         <ul class="list" id="dailyList"></ul>
@@ -744,6 +752,15 @@ function syncDie() {
   el('diceLead').textContent = state.daily.length
     ? `Picking from 1–${state.daily.length}` : 'Add tasks to Today';
   el('rollBtn').disabled = state.daily.length === 0;
+  el('resetBtn').disabled = state.daily.length === 0;
+}
+
+// Send every task in Today back to the bottom of the master list.
+function resetDaily() {
+  if (!state.daily.length) return;
+  state.master.push(...state.daily);
+  state.daily.length = 0;
+  commit();
 }
 
 /* ---- rendering ---- */
@@ -880,6 +897,7 @@ function flashTask(id) {
 function flashDie(msg) { const lead = el('diceLead'); const old = lead.textContent; lead.textContent = msg; setTimeout(() => { lead.textContent = old; }, 1400); }
 
 el('rollBtn').addEventListener('click', Dice.roll);
+el('resetBtn').addEventListener('click', resetDaily);
 
 /* ===================================================================
    AUTH + USER MANAGEMENT
