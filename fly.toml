@@ -1,0 +1,37 @@
+# fly.toml — Fly.io deployment for the Dice To-Do app
+#
+# First-time deploy:
+#   fly launch --no-deploy            # or just edit `app` below to a unique name
+#   fly volumes create todo_data --size 1 --region <your-region>
+#   fly secrets set ADMIN_PASSWORD=choose-a-strong-one   # optional: else it's generated + printed in `fly logs`
+#   fly deploy
+#
+# NOTE: this app uses SQLite on a single mounted volume, so keep it to ONE
+# machine (`fly scale count 1`). SQLite can't be shared across machines.
+
+app = "dice-todo"            # must be globally unique — change me
+primary_region = "iad"       # pick a region near you: `fly platform regions`
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "3000"
+  # SQLite lives on the mounted volume (/data) so data persists across deploys.
+  DATABASE_URL = "sqlite:///data/todo.db?mode=rwc"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0   # set to 1 to avoid cold starts
+
+# Persistent disk for the SQLite database.
+[mounts]
+  source = "todo_data"
+  destination = "/data"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
