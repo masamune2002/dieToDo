@@ -16,8 +16,10 @@ const checks = [];
 const ok = (name, cond, extra='') => { checks.push(!!cond); console.log(`${cond?'PASS':'FAIL'}  ${name}${extra?'  '+extra:''}`); };
 
 // 1) Fresh server -> frontend seeds the 6 example tasks
-await page.goto(`${BASE}/index.html`, { waitUntil: 'networkidle0', timeout: 60000 });
-await page.waitForFunction(() => !document.getElementById('loading') && !!window.__app, { timeout: 60000 });
+await page.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' });
+await page.evaluate(async () => { await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username:'admin', password:'adminpass' }) }); });
+await page.reload({ waitUntil: 'networkidle0', timeout: 60000 });
+await page.waitForFunction(() => !document.getElementById('loading') && !!window.__app && !document.getElementById('loginScreen').classList.contains('show'), { timeout: 60000 });
 await new Promise(r=>setTimeout(r,400));
 const seeded = await page.evaluate(() => ({ m: window.__app.state.master.length, d: window.__app.state.daily.length }));
 ok('fresh load seeds 6 master tasks', seeded.m === 6 && seeded.d === 0, JSON.stringify(seeded));
@@ -51,8 +53,9 @@ ok('Today is numbered/ordered', afterReload.daily.length === 2);
 const total = afterReload.master.length + afterReload.daily.length;
 ok('no tasks lost across reload', total === 7, `total=${total}`);
 
-const realErrors = errors.filter(e => !e.includes('favicon') && !e.includes('404'));
-ok('no console errors', realErrors.length === 0, realErrors.join(' | '));
+// Ignore the expected 401 from /api/me on the initial pre-login page load.
+const realErrors = errors.filter(e => !/Failed to load resource/.test(e) && !e.includes('favicon'));
+ok('no uncaught JS errors', realErrors.length === 0, realErrors.join(' | '));
 
 await page.screenshot({ path: '/tmp/persist.png' });
 await browser.close();

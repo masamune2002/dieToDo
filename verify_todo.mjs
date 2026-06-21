@@ -14,9 +14,10 @@ page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
 // start clean (no persisted state)
 await page.goto('http://localhost:3000/index.html', { waitUntil: 'domcontentloaded' });
 await page.evaluate(() => localStorage.removeItem('diceTodo'));
+await page.evaluate(async () => { await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username:'admin', password:'adminpass' }) }); });
 await page.reload({ waitUntil: 'networkidle0', timeout: 60000 });
 await page.waitForFunction(() => !document.getElementById('loading'), { timeout: 60000 });
-await page.waitForFunction(() => !!window.__app, { timeout: 10000 });
+await page.waitForFunction(() => !!window.__app && !document.getElementById('loginScreen').classList.contains('show'), { timeout: 10000 });
 
 const checks = [];
 const ok = (name, cond, extra='') => { checks.push({ name, pass: !!cond, extra }); console.log(`${cond?'PASS':'FAIL'}  ${name}${extra?'  '+extra:''}`); };
@@ -106,7 +107,7 @@ ok('roll shows overlay', /You rolled \d+/.test(ov.roll), `${ov.roll} | ${ov.pick
 
 await page.screenshot({ path: '/tmp/todo.png' });
 
-const realErrors = errors.filter(e => !e.includes('404'));
+const realErrors = errors.filter(e => !/Failed to load resource/.test(e) && !e.includes('404'));
 ok('no console errors', realErrors.length === 0, realErrors.join(' | '));
 
 const allPass = checks.every(c => c.pass);

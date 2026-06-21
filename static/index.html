@@ -115,6 +115,77 @@
   .card .ghost { color: #cfd6e8; background: rgba(255,255,255,0.08); }
 
   .loading { position: fixed; inset: 0; display: grid; place-items: center; z-index: 80; background: #0b0e18; }
+
+  /* ---- user bar (in the master header) ---- */
+  .userbar { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .userbar .who { opacity: .7; }
+  .userbar .who b { opacity: 1; font-weight: 700; }
+  .userbar button {
+    appearance: none; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.05);
+    color: #dfe4f2; font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 8px; cursor: pointer;
+  }
+  .userbar button:hover { background: rgba(255,255,255,0.12); }
+  .userbar .admin-only { display: none; }
+  body.is-admin .userbar .admin-only { display: inline-block; }
+
+  /* ---- login screen ---- */
+  .login {
+    position: fixed; inset: 0; z-index: 90; display: none; place-items: center;
+    background: radial-gradient(1200px 800px at 50% -10%, #2a3050 0%, #141826 55%, #0b0e18 100%);
+  }
+  .login.show { display: grid; }
+  .login form {
+    width: min(360px, 88vw); padding: 30px 28px; text-align: center;
+    background: rgba(22,27,42,0.72); backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.10); border-radius: 18px; box-shadow: 0 24px 70px rgba(0,0,0,.6);
+  }
+  .login h1 { margin: 0 0 4px; font-size: 22px; }
+  .login .sub { font-size: 12px; opacity: .55; margin-bottom: 20px; }
+  .login input {
+    display: block; width: 100%; margin: 10px 0; padding: 11px 12px; font-size: 14px;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px;
+    color: #eef1f8; outline: none;
+  }
+  .login input:focus { border-color: rgba(120,160,255,0.6); }
+  .login button[type=submit] {
+    width: 100%; margin-top: 8px; padding: 12px; border: 0; border-radius: 10px; cursor: pointer;
+    font-weight: 800; font-size: 15px; color: #0b0e18; background: linear-gradient(180deg, #9fd0ff, #5aa0ee);
+  }
+  .login .err { color: #ff8e7a; font-size: 13px; min-height: 18px; margin-top: 12px; }
+
+  /* ---- admin users modal ---- */
+  .modal { position: fixed; inset: 0; z-index: 70; display: none; place-items: center;
+           background: rgba(6,8,16,0.66); backdrop-filter: blur(4px); }
+  .modal.show { display: grid; }
+  .modal .sheet {
+    width: min(460px, 90vw); max-height: 80vh; overflow: auto; padding: 22px 22px 18px;
+    background: linear-gradient(180deg, #1c2236, #141826);
+    border: 1px solid rgba(255,255,255,0.10); border-radius: 18px; box-shadow: 0 24px 70px rgba(0,0,0,.6);
+  }
+  .modal .sheet h2 { margin: 0 0 14px; font-size: 17px; }
+  .modal .ulist { list-style: none; margin: 0 0 14px; padding: 0; }
+  .modal .ulist li {
+    display: flex; align-items: center; gap: 10px; padding: 9px 11px; margin: 6px 0;
+    background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
+  }
+  .modal .ulist .uname { flex: 1; font-size: 14px; }
+  .modal .ulist .urole { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; opacity: .6; }
+  .modal .ulist .badge-you { font-size: 11px; opacity: .5; }
+  .modal .ulist .rm { cursor: pointer; border: 0; background: rgba(255,80,80,0.18); color: #ffb3a8;
+                      border-radius: 7px; padding: 4px 9px; font-size: 12px; font-weight: 700; }
+  .modal .ulist .rm:hover { background: rgba(255,80,80,0.32); }
+  .modal .addform { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 8px; align-items: center;
+                    border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px; }
+  .modal .addform input, .modal .addform select {
+    padding: 9px 10px; font-size: 13px; background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 9px; color: #eef1f8; outline: none; min-width: 0;
+  }
+  .modal .addform button { border: 0; cursor: pointer; font-weight: 800; color: #0b0e18;
+                           background: linear-gradient(180deg, #8fe0a8, #4cd07a); border-radius: 9px; padding: 9px 12px; }
+  .modal .row-end { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; }
+  .modal .err { color: #ff8e7a; font-size: 12px; min-height: 16px; }
+  .modal .close { border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.05);
+                  color: #cfd6e8; border-radius: 9px; padding: 8px 14px; cursor: pointer; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -122,7 +193,14 @@
     <div class="top">
       <!-- Master backlog -->
       <div class="col">
-        <div class="col-head"><h2>Master list</h2><span class="count" id="masterCount"></span></div>
+        <div class="col-head">
+          <h2>Master list</h2><span class="count" id="masterCount"></span>
+          <div class="userbar">
+            <span class="who">Signed in as <b id="whoName">—</b></span>
+            <button class="admin-only" id="usersBtn" title="Manage users">Users</button>
+            <button id="logoutBtn" title="Log out">Log out</button>
+          </div>
+        </div>
         <div class="add-row">
           <input id="masterInput" type="text" placeholder="Add a task and press Enter…" />
           <button id="masterAdd" title="Add">+</button>
@@ -157,6 +235,36 @@
       <div class="roll-num" id="ovRoll">You rolled</div>
       <div class="pick" id="ovPick">—</div>
       <div class="btns" id="ovBtns"></div>
+    </div>
+  </div>
+
+  <!-- Login screen -->
+  <div class="login" id="loginScreen">
+    <form id="loginForm" autocomplete="on">
+      <h1>Dice To-Do</h1>
+      <div class="sub">Sign in to continue</div>
+      <input id="loginUser" name="username" type="text" placeholder="Username" autocomplete="username" required />
+      <input id="loginPass" name="password" type="password" placeholder="Password" autocomplete="current-password" required />
+      <button type="submit">Log in</button>
+      <div class="err" id="loginErr"></div>
+    </form>
+  </div>
+
+  <!-- Admin: user management -->
+  <div class="modal" id="usersModal">
+    <div class="sheet">
+      <h2>Users</h2>
+      <ul class="ulist" id="usersList"></ul>
+      <form class="addform" id="addUserForm">
+        <input id="newUser" type="text" placeholder="username" required />
+        <input id="newPass" type="password" placeholder="password (min 6)" required />
+        <select id="newRole"><option value="user">user</option><option value="admin">admin</option></select>
+        <button type="submit">Add</button>
+      </form>
+      <div class="row-end">
+        <span class="err" id="usersErr"></span>
+        <button class="close" id="usersClose">Close</button>
+      </div>
     </div>
   </div>
 
@@ -570,34 +678,28 @@ const API = '/api/state';
 const SEED = ['Email Bob about the proposal', 'Write the spec doc', 'Fix the login bug',
               'Review PR #214', 'Water the plants', 'Plan sprint demo'];
 
-// Persistence: write-through to the Axum/SQLite backend on every change.
-// Saves are chained so a slow request can't clobber newer state, and fall back
-// to localStorage if the server is unreachable (e.g. opened as a static file).
+// Persistence: write-through to the per-user state on the Axum/SQLite backend
+// on every change. Saves are chained so a slow request can't clobber newer
+// state; a 401 means the session lapsed → bounce back to the login screen.
 let saveChain = Promise.resolve();
 function save() {
   saveChain = saveChain.then(() =>
     fetch(API, { method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ master: state.master, daily: state.daily }) })
-      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); })
+      .then(r => { if (r.status === 401) { showLogin(); return; }
+                   if (!r.ok) throw new Error('HTTP ' + r.status); })
       .catch(err => { console.warn('save failed, caching locally', err);
                       localStorage.setItem('diceTodo', JSON.stringify(state)); })
   );
 }
-async function loadState() {
-  try {
-    const r = await fetch(API);
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const data = await r.json();
-    if (!data.seeded) return null;            // brand-new server → caller seeds below
-    return { master: data.master, daily: data.daily };
-  } catch (err) {
-    console.warn('load failed, trying localStorage', err);
-    try { return JSON.parse(localStorage.getItem('diceTodo')); } catch (_) { return null; }
-  }
-}
 
-let state = await loadState();
-if (!state) { state = { master: SEED.map(mk), daily: [] }; save(); }   // first run: seed + persist
+// One state object, mutated in place (never reassigned) so drag/drop zones and
+// window.__app keep valid array references.
+const state = { master: [], daily: [] };
+function applyState(loaded) {
+  state.master.splice(0, state.master.length, ...(loaded.master || []));
+  state.daily.splice(0, state.daily.length, ...(loaded.daily || []));
+}
 
 function dieForCount(n) {
   if (n <= 4) return 'd4';
@@ -779,12 +881,117 @@ function flashDie(msg) { const lead = el('diceLead'); const old = lead.textConte
 
 el('rollBtn').addEventListener('click', Dice.roll);
 
+/* ===================================================================
+   AUTH + USER MANAGEMENT
+   =================================================================== */
+const loginScreen = el('loginScreen');
+function showLogin() { loginScreen.classList.add('show'); }
+function hideLogin() { loginScreen.classList.remove('show'); }
+
+let currentUser = null;
+function setUserBar(me) {
+  currentUser = me;
+  el('whoName').textContent = me.username;
+  document.body.classList.toggle('is-admin', me.role === 'admin');
+}
+
+el('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  el('loginErr').textContent = '';
+  const username = el('loginUser').value.trim();
+  const password = el('loginPass').value;
+  try {
+    const r = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }) });
+    if (r.status === 401) { el('loginErr').textContent = 'Invalid username or password'; return; }
+    if (!r.ok) { el('loginErr').textContent = 'Login failed (' + r.status + ')'; return; }
+    const me = await r.json();
+    el('loginPass').value = '';
+    await startApp(me);
+  } catch (_) { el('loginErr').textContent = 'Network error'; }
+});
+
+el('logoutBtn').addEventListener('click', async () => {
+  try { await fetch('/api/logout', { method: 'POST' }); } catch (_) {}
+  location.reload();
+});
+
+/* ---- admin: user management modal ---- */
+const usersModal = el('usersModal');
+el('usersBtn').addEventListener('click', async () => { el('usersErr').textContent = ''; usersModal.classList.add('show'); await renderUsers(); });
+el('usersClose').addEventListener('click', () => usersModal.classList.remove('show'));
+usersModal.addEventListener('click', (e) => { if (e.target === usersModal) usersModal.classList.remove('show'); });
+
+async function renderUsers() {
+  const list = el('usersList'); list.innerHTML = '';
+  let users = [];
+  try { const r = await fetch('/api/users'); if (!r.ok) throw new Error('HTTP ' + r.status); users = await r.json(); }
+  catch (_) { el('usersErr').textContent = 'Failed to load users'; return; }
+  for (const u of users) {
+    const li = document.createElement('li');
+    const name = document.createElement('span'); name.className = 'uname'; name.textContent = u.username;
+    const role = document.createElement('span'); role.className = 'urole'; role.textContent = u.role;
+    li.append(name, role);
+    if (currentUser && u.username === currentUser.username) {
+      const you = document.createElement('span'); you.className = 'badge-you'; you.textContent = 'you';
+      li.append(you);
+    } else {
+      const rm = document.createElement('button'); rm.className = 'rm'; rm.textContent = 'Remove';
+      rm.addEventListener('click', () => removeUser(u.id));
+      li.append(rm);
+    }
+    list.append(li);
+  }
+}
+el('addUserForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  el('usersErr').textContent = '';
+  const username = el('newUser').value.trim();
+  const password = el('newPass').value;
+  const role = el('newRole').value;
+  if (!username || password.length < 6) { el('usersErr').textContent = 'Username required, password ≥ 6 chars'; return; }
+  const r = await fetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password, role }) });
+  if (r.status === 409) { el('usersErr').textContent = 'That username already exists'; return; }
+  if (!r.ok) { el('usersErr').textContent = 'Could not create user (' + r.status + ')'; return; }
+  el('newUser').value = ''; el('newPass').value = '';
+  await renderUsers();
+});
+async function removeUser(id) {
+  el('usersErr').textContent = '';
+  const r = await fetch('/api/users/' + id, { method: 'DELETE' });
+  if (!r.ok) { el('usersErr').textContent = 'Could not remove user (' + r.status + ')'; return; }
+  await renderUsers();
+}
+
+/* ---- start the app once authenticated ---- */
+async function startApp(me) {
+  hideLogin();
+  setUserBar(me);
+  try {
+    const r = await fetch(API);
+    if (r.status === 401) { showLogin(); return; }
+    if (r.ok) {
+      const data = await r.json();
+      if (data.seeded) applyState({ master: data.master, daily: data.daily });
+      else { applyState({ master: SEED.map(mk), daily: [] }); save(); }   // first login: seed demo tasks
+    }
+  } catch (err) { console.warn('state load failed', err); }
+  render(); syncDie();
+}
+
 /* expose minimal hooks for automated verification */
-window.__app = { state, dieForCount, moveItem, completeById, syncDie, get dailyCount() { return state.daily.length; } };
+window.__app = { state, dieForCount, moveItem, completeById, syncDie,
+                 get dailyCount() { return state.daily.length; },
+                 get user() { return currentUser; } };
 window.__dice = Dice;
 
-/* ---- boot ---- */
-render(); syncDie();
+/* ---- boot: resume session if present, else show the login screen ---- */
+const me = await (async () => {
+  try { const r = await fetch('/api/me'); return r.ok ? await r.json() : null; } catch (_) { return null; }
+})();
+if (me) await startApp(me);
+else { render(); syncDie(); showLogin(); }
 </script>
 </body>
 </html>
